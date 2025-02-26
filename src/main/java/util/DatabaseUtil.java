@@ -11,7 +11,6 @@ public class DatabaseUtil {
 
     static {
         try {
-            // Load the PostgreSQL JDBC driver
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();

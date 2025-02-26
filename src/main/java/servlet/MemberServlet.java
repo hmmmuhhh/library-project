@@ -28,7 +28,6 @@ public class MemberServlet extends HttpServlet {
             List<Member> members = databaseService.getAllMembers();
             String template = loadTemplate(request);
 
-            // Replace placeholders
             StringBuilder membersHtml = new StringBuilder();
             for (Member member : members) {
                 membersHtml.append("<tr>")
@@ -39,7 +38,6 @@ public class MemberServlet extends HttpServlet {
                         .append("</tr>");
             }
 
-            // Handle empty context path
             String html = template.replace("${members}", membersHtml.toString());
 
             response.setContentType("text/html");
@@ -55,7 +53,7 @@ public class MemberServlet extends HttpServlet {
 
     private String loadTemplate(HttpServletRequest request) throws IOException {
         StringBuilder template = new StringBuilder();
-        System.out.println("Loading template: " + "members.html"); // Debugging
+        System.out.println("Loading template: " + "members.html");
 
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(request.getServletContext().getResourceAsStream("/templates/" + "members.html")))
@@ -63,43 +61,26 @@ public class MemberServlet extends HttpServlet {
             String line;
             while ((line = reader.readLine()) != null) {
                 template.append(line).append("\n");
-                System.out.println("Read line: " + line); // Debugging
+                System.out.println("Read line: " + line);
             }
         } catch (NullPointerException e) {
-            System.err.println("Template file not found: " + "members.html"); // Debugging
             throw new IOException("Template file not found: " + "members.html", e);
         }
 
-        System.out.println("Template content: " + template); // Debugging
+        System.out.println("Template content: " + template);
         return template.toString();
     }
-
-//    @Override
-//    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-//        String name = request.getParameter("name");
-//        String email = request.getParameter("email");
-//
-//        try {
-//            databaseService.addMember(name, email);
-//            response.sendRedirect("/members");
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
-//        }
-//    }
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String name = request.getParameter("name");
         String email = request.getParameter("email");
 
-        // Validate input
         if (name == null || name.isEmpty() || email == null || email.isEmpty()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "All fields are required");
             return;
         }
 
-        // Enhanced email validation
         if (!isValidEmail(email)) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid email format");
             return;
@@ -109,7 +90,7 @@ public class MemberServlet extends HttpServlet {
             databaseService.addMember(name, email);
             response.sendRedirect(request.getContextPath() + "/members");
         } catch (SQLException e) {
-            if (e.getSQLState().equals("23505")) { // Unique violation
+            if (e.getSQLState().equals("23505")) {
                 response.sendError(HttpServletResponse.SC_CONFLICT, "Email already registered");
             } else {
                 e.printStackTrace();
@@ -119,28 +100,25 @@ public class MemberServlet extends HttpServlet {
     }
 
     private boolean isValidEmail(String email) {
-        // Simple email regex validation
         String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
         return email.matches(emailRegex);
     }
 
-
     @Override
     public void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String path = request.getPathInfo(); // Get the path info (e.g., "/1")
+        String path = request.getPathInfo();
         if (path == null || path.equals("/")) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing member ID");
             return;
         }
 
-        String idStr = path.substring(1); // Extract the ID from the path (e.g., "1")
+        String idStr = path.substring(1);
         if (!idStr.matches("\\d+")) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid member ID format");
             return;
         }
 
         try {
-            // Manually parse the request body
             String body = request.getReader().lines().collect(Collectors.joining());
             Map<String, String> params = parseFormData(body);
             String name = params.get("name");
@@ -162,7 +140,6 @@ public class MemberServlet extends HttpServlet {
         }
     }
 
-    // Helper method to parse form data
     private Map<String, String> parseFormData(String formData) {
         Map<String, String> params = new HashMap<>();
         String[] pairs = formData.split("&");
@@ -179,13 +156,13 @@ public class MemberServlet extends HttpServlet {
 
     @Override
     public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String path = request.getPathInfo(); // Get the path info (e.g., "/1")
+        String path = request.getPathInfo();
         if (path == null || path.equals("/")) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing member ID");
             return;
         }
 
-        String idStr = path.substring(1); // Extract the ID from the path (e.g., "1")
+        String idStr = path.substring(1);
         if (!idStr.matches("\\d+")) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid member ID format");
             return;

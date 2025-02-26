@@ -16,11 +16,9 @@ import java.util.List;
 public class DatabaseService {
     private static DatabaseService instance;
 
-    // Private constructor to prevent instantiation
     public DatabaseService() {
     }
 
-    // Public method to get the singleton instance
     public static synchronized DatabaseService getInstance() {
         if (instance == null) {
             instance = new DatabaseService();
@@ -28,7 +26,6 @@ public class DatabaseService {
         return instance;
     }
 
-    // Book-related operations
     public List<Book> getAllBooks() throws SQLException {
         List<Book> books = new ArrayList<>();
         try (Connection conn = DatabaseUtil.getConnection();
@@ -84,7 +81,6 @@ public class DatabaseService {
         }
     }
 
-    // Member-related operations
     public List<Member> getAllMembers() throws SQLException {
         List<Member> members = new ArrayList<>();
         try (Connection conn = DatabaseUtil.getConnection();
@@ -137,7 +133,6 @@ public class DatabaseService {
         }
     }
 
-    // Borrowing-related operations
     public List<Borrowing> getAllBorrowings() throws SQLException {
         List<Borrowing> borrowings = new ArrayList<>();
         try (Connection conn = DatabaseUtil.getConnection();
@@ -175,7 +170,7 @@ public class DatabaseService {
 
             stmt.setDate(1, java.sql.Date.valueOf(LocalDate.now()));
             stmt.setString(2, bookCode);
-            return stmt.executeUpdate(); // Return the number of rows updated
+            return stmt.executeUpdate();
         }
     }
 
@@ -193,7 +188,7 @@ public class DatabaseService {
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT 1 FROM books WHERE code = ?")) {
             stmt.setString(1, bookCode);
-            return stmt.executeQuery().next();
+            return !stmt.executeQuery().next();
         }
     }
 
@@ -206,33 +201,3 @@ public class DatabaseService {
         }
     }
 }
-//    public boolean isBookAlreadyBorrowed(String bookCode) throws SQLException {
-//        try (Connection conn = DatabaseUtil.getConnection();
-//             PreparedStatement stmt = conn.prepareStatement(
-//                     "SELECT 1 FROM borrowings WHERE book_code = ? AND return_date IS NULL")) {
-//
-//            stmt.setString(1, bookCode);
-//            return stmt.executeQuery().next();
-//        }
-//    }
-//
-//    public boolean memberExists(int memberId) throws SQLException {
-//        try (Connection conn = DatabaseUtil.getConnection();
-//             PreparedStatement stmt = conn.prepareStatement(
-//                     "SELECT 1 FROM members WHERE id = ?")) {
-//
-//            stmt.setInt(1, memberId);
-//            return stmt.executeQuery().next();
-//        }
-//    }
-//
-//    public boolean bookExists(String bookCode) throws SQLException {
-//        try (Connection conn = DatabaseUtil.getConnection();
-//             PreparedStatement stmt = conn.prepareStatement(
-//                     "SELECT 1 FROM books WHERE code = ?")) {
-//
-//            stmt.setString(1, bookCode);
-//            return stmt.executeQuery().next();
-//        }
-//    }
-//}

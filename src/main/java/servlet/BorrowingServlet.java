@@ -24,18 +24,16 @@ public class BorrowingServlet extends HttpServlet {
             List<Borrowing> borrowings = databaseService.getAllBorrowings();
             String template = loadTemplate(request);
 
-            // Replace placeholders
             StringBuilder borrowingsHtml = new StringBuilder();
             for (Borrowing borrowing : borrowings) {
                 borrowingsHtml.append("<tr>")
-                        .append("<td>").append(borrowing.getBookCode()).append("</td>")
-                        .append("<td>").append(borrowing.getMemberId()).append("</td>")
-                        .append("<td>").append(borrowing.getBorrowDate()).append("</td>")
-                        .append("<td>").append(borrowing.getReturnDate() != null ? borrowing.getReturnDate() : "Not Returned").append("</td>")
+                        .append("<td>").append(borrowing.bookCode()).append("</td>")
+                        .append("<td>").append(borrowing.memberId()).append("</td>")
+                        .append("<td>").append(borrowing.borrowDate()).append("</td>")
+                        .append("<td>").append(borrowing.returnDate() != null ? borrowing.returnDate() : "Not Returned").append("</td>")
                         .append("</tr>");
             }
 
-            // Add error or success message if present
             String errorMessage = request.getParameter("error");
             String successMessage = request.getParameter("success");
             StringBuilder messageHtml = new StringBuilder();
@@ -61,7 +59,7 @@ public class BorrowingServlet extends HttpServlet {
 
     private String loadTemplate(HttpServletRequest request) throws IOException {
         StringBuilder template = new StringBuilder();
-        System.out.println("Loading template: " + "borrowings.html"); // Debugging
+        System.out.println("Loading template: " + "borrowings.html");
 
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(request.getServletContext().getResourceAsStream("/templates/" + "borrowings.html")))
@@ -69,14 +67,13 @@ public class BorrowingServlet extends HttpServlet {
             String line;
             while ((line = reader.readLine()) != null) {
                 template.append(line).append("\n");
-                System.out.println("Read line: " + line); // Debugging
+                System.out.println("Read line: " + line);
             }
         } catch (NullPointerException e) {
-            System.err.println("Template file not found: " + "borrowings.html"); // Debugging
             throw new IOException("Template file not found: " + "borrowings.html", e);
         }
 
-        System.out.println("Template content: " + template.toString()); // Debugging
+        System.out.println("Template content: " + template);
         return template.toString();
     }
 
@@ -91,48 +88,25 @@ public class BorrowingServlet extends HttpServlet {
         }
     }
 
-    //    private void handleReturn(HttpServletRequest request, HttpServletResponse response) throws IOException {
-//        String bookCode = request.getParameter("bookCode");
-//        if (bookCode == null || bookCode.isEmpty()) {
-//            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing book code");
-//            return;
-//        }
-//
-//        try {
-//            int rowsUpdated = databaseService.returnBook(bookCode);
-//            if (rowsUpdated == 0) {
-//                response.sendError(HttpServletResponse.SC_NOT_FOUND, "No active borrowing found for this book");
-//            } else {
-//                response.sendRedirect("/borrow");
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
-//        }
-//    }
     private void handleReturn(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String bookCode = request.getParameter("bookCode");
 
-        // Validate input
         if (bookCode == null || bookCode.isEmpty()) {
             response.sendRedirect("/borrow?error=Missing book code");
             return;
         }
 
         try {
-            // Check if the book exists
-            if (!databaseService.bookExists(bookCode)) {
+            if (databaseService.bookExists(bookCode)) {
                 response.sendRedirect("/borrow?error=Book not found");
                 return;
             }
 
-            // Check if the book is currently borrowed
             if (!databaseService.isBookAlreadyBorrowed(bookCode)) {
                 response.sendRedirect("/borrow?error=No active borrowing found for this book");
                 return;
             }
 
-            // Return the book
             int rowsUpdated = databaseService.returnBook(bookCode);
             if (rowsUpdated == 0) {
                 response.sendRedirect("/borrow?error=Failed to return the book");
@@ -150,7 +124,6 @@ public class BorrowingServlet extends HttpServlet {
         String bookCode = request.getParameter("bookCode");
         String memberIdStr = request.getParameter("memberId");
 
-        // Validate input
         if (bookCode == null || bookCode.isEmpty() || memberIdStr == null || memberIdStr.isEmpty()) {
             response.sendRedirect("/borrow?error=All fields are required");
             return;
@@ -159,25 +132,21 @@ public class BorrowingServlet extends HttpServlet {
         try {
             int memberId = Integer.parseInt(memberIdStr);
 
-            // Check if member exists
             if (!databaseService.memberExists(memberId)) {
                 response.sendRedirect("/borrow?error=Member not found");
                 return;
             }
 
-            // Check if book exists
-            if (!databaseService.bookExists(bookCode)) {
+            if (databaseService.bookExists(bookCode)) {
                 response.sendRedirect("/borrow?error=Book not found");
                 return;
             }
 
-            // Check if book is already borrowed
             if (databaseService.isBookAlreadyBorrowed(bookCode)) {
                 response.sendRedirect("/borrow?error=Book is already borrowed");
                 return;
             }
 
-            // Borrow the book
             databaseService.borrowBook(bookCode, memberId);
             response.sendRedirect("/borrow?success=Book borrowed successfully");
 

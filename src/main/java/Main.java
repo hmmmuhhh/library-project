@@ -5,7 +5,6 @@ import service.DatabaseService;
 
 import servlet.*;
 
-
 public class Main {
 
     public static void main(String[] args) throws LifecycleException {
@@ -13,19 +12,15 @@ public class Main {
         tomcat.setBaseDir("tomcatSvr");
         tomcat.setPort(8080);
 
-        // Set context path and document base
         String contextPath = "";
         String docBase = "C:\\Users\\Admin\\Downloads\\Servlets\\Mziuri\\src\\main\\webapp";
 
         Context context = tomcat.addContext(contextPath, docBase);
 
-        // Create services
         DatabaseService dbService = DatabaseService.getInstance();
 
-        // Register servlets here
-
         Tomcat.addServlet(context, "homeServlet", new HomeServlet());
-        context.addServletMappingDecoded("/home", "homeServlet"); // Map to /home instead of /*
+        context.addServletMappingDecoded("/home", "homeServlet");
 
         Tomcat.addServlet(context, "borrowingServlet", new BorrowingServlet(dbService));
         context.addServletMappingDecoded("/borrow/*", "borrowingServlet");
